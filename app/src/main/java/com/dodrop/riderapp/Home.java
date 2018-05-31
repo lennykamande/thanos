@@ -2,6 +2,7 @@ package com.dodrop.riderapp;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -51,6 +52,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -572,6 +574,19 @@ public class Home extends AppCompatActivity
         //googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-1.2833,36.8167), 12));
 
         mMap = googleMap;
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.maps));
+
+            if (!success) {
+                Log.e("Home", "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e("Home", "Can't find style. Error: ", e);
+        }
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setAllGesturesEnabled(true);
         mMap.setInfoWindowAdapter(new CustomInfoWindow(this));

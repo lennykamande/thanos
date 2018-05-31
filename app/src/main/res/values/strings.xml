@@ -9,4 +9,6 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_rider_map">RiderMap</string>
     <string name="title_activity_rider_maps">RiderMaps</string>
+
+    <string name="google_direction_api">AIzaSyDiWuUJdr2_bRK8E_JI2sKrni8U8zIs2RM</string>
 </resources>
