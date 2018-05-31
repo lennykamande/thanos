@@ -95,7 +95,7 @@ public class Home extends AppCompatActivity
     DatabaseReference ref;
     GeoFire geoFire;
 
-    Marker mUserMarker;
+    Marker mUserMarker,markerDestination;
 
     ImageView imgExpandable;
     BottomSheetRiderFragment mBottomSheet;
@@ -174,7 +174,7 @@ public class Home extends AppCompatActivity
 
                 mMap.clear();
                 mUserMarker = mMap.addMarker(new MarkerOptions().position(place.getLatLng())
-                                .icon(BitmapDescriptorFactory.defaultMarker())
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
                                 .title("Pickup Location"));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(),17.0f));
             }
@@ -190,10 +190,11 @@ public class Home extends AppCompatActivity
                 mPlaceDestination = place.getAddress().toString();
 
                 mMap.addMarker(new MarkerOptions().position(place.getLatLng())
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination_marker))
+                        .title("Destination"));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(),17.0f));
 
-                BottomSheetRiderFragment mBottomSheet = BottomSheetRiderFragment.newInstance(mPlaceLocation,mPlaceDestination);
+                BottomSheetRiderFragment mBottomSheet = BottomSheetRiderFragment.newInstance(mPlaceLocation,mPlaceDestination, false);
                 Home.super.onPostResume();
                 mBottomSheet.show(getSupportFragmentManager(), mBottomSheet.getTag());
             }
@@ -269,7 +270,6 @@ public class Home extends AppCompatActivity
 
         mUserMarker = mMap.addMarker(new MarkerOptions()
                 .title("PickUp Here")
-                .snippet("")
                 .position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
 
@@ -418,14 +418,6 @@ public class Home extends AppCompatActivity
 
                     //update geofire
 
-                    if (mUserMarker != null)
-                        mUserMarker.remove();
-
-                    mUserMarker = mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(latitude, longitude))
-                            .title("Me"));
-
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 17.0f));
 
                     loadAllAvailableDriver(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()));
 
@@ -440,9 +432,16 @@ public class Home extends AppCompatActivity
 
     private void loadAllAvailableDriver(final LatLng location) {
         //Clear map from all markers
-        mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(location)
-                .title("Your Location"));
+        if (mUserMarker != null)
+            mUserMarker.remove();
+
+        mUserMarker = mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
+                .position(location)
+                .title(String.format("Me")));
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17.0f));
+
         DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference(Common.driver_tbl);
         GeoFire gfDrivers = new GeoFire(driverLocation);
 
@@ -567,12 +566,6 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        //Add sample marker
-        //googleMap.addMarker(new MarkerOptions()
-        //.position(new LatLng(-1.2833, 36.8167))
-        // .title("Nairobi"));
-        //googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-1.2833,36.8167), 12));
-
         mMap = googleMap;
         try {
             // Customise the styling of the base map using a JSON object defined
@@ -590,6 +583,25 @@ public class Home extends AppCompatActivity
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setAllGesturesEnabled(true);
         mMap.setInfoWindowAdapter(new CustomInfoWindow(this));
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if(markerDestination != null)
+                    markerDestination.remove();
+                markerDestination = mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination_marker))
+                .position(latLng)
+                .title("Destination"));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15.0f));
+
+                BottomSheetRiderFragment mBottomSheet = BottomSheetRiderFragment.newInstance(String.format("%f, %f",mLastLocation.getLatitude(),mLastLocation.getLongitude()),
+                        String.format("%f, %f", latLng.latitude,latLng.longitude),
+                         true);
+                Home.super.onPostResume();
+                mBottomSheet.show(getSupportFragmentManager(), mBottomSheet.getTag());
+            }
+        });
 
         if (ActivityCompat.checkSelfPermission(Home.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(Home.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

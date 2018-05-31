@@ -22,7 +22,7 @@ public class Common {
 
     public static final double base_fare = 20.00;
     public static final double time_rate = 4.00;
-    public static final double distance_rate = 7.00;
+    public static final double distance_rate = 5.00;
 
     public static double getPrice(double km, int min)
     {
